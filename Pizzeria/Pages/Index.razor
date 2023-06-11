@@ -1,0 +1,127 @@
+﻿@page "/"
+
+<!-- Menu -->
+
+<h1>Nuestra selecci&oacute;n para pizzas</h1>
+
+@foreach (var pizza in Estado.Menu.Pizzas)
+{
+    <div class="row">
+        <div class="col">
+            @pizza.Nombre
+        </div>
+        <div class="col text-right">
+            @($"{pizza.Precio:0.00}")
+        </div>
+        <div class="col"></div>
+        <div class="col">
+            <img src="@EspeciasImagenes(pizza.Especias)"
+                 alt="@pizza.Especias" />
+        </div>
+        <div class="col">
+            <button class="btn btn-success pl-4 pr-4"
+                @onclick="@(() => AddCanasta(pizza))">
+                Add
+            </button>
+        </div>
+    </div>
+}
+
+<!-- Final Menu -->
+<!-- Canasta de compras -->
+@if (Estado.Canasta.Pedidos.Any())
+{
+    <h2 class="">Tu orden actual</h2>
+
+    @foreach (var (pizza, pos) in Estado.Canasta.Pedidos.Select((id, pos) => (Estado.Menu.GetPizza(id), pos)))
+    {
+        <div class="row mb-2">
+            <div class="col">
+                @pizza.Nombre
+            </div>
+            <div class="col text-right">
+                @($"{pizza.Precio:0.00}")
+            </div>
+            <div class="col"></div>
+            <div class="col"></div>
+            <div class="col">
+                <button class="btn btn-danger"
+                @onclick="@(() => RemoverCanata(pos))">
+                    remove
+                </button>
+            </div>
+        </div>
+
+    }
+    <div class="row">
+        <div class="col"></div>
+        <div class="col"><hr /></div>
+        <div class="col"> </div>
+        <div class="col"> </div>
+    </div>
+    <div class="row">
+        <div class="col"> total:</div>
+        <div class="col text-right font-weight-bold">
+            @($"{Estado.PrecioTotal:0.00}")
+        </div>
+        <div class="col"> </div>
+        <div class="col"> </div>
+        <div class="col"> </div>
+    </div>
+}
+
+<!-- Final de la Canasta de compras  -->
+<!-- Entrada de cliente -->
+
+<h2>Por favor, introduzca sus datos a continuaci&oacute;n</h2>
+
+<EditForm Model="@Estado.Canasta.Cliente" OnValidSubmit="PlaceOrder">
+    <DataAnnotationsValidator />
+
+    <fieldset>
+
+        <div class="row mb-2">
+            <label class="col-2" for="nombre">Nombre:</label>
+            <input class="form-control col-6 valid" id="nombre" @bind="Estado.Canasta.Cliente.Nombre" />
+            <div class="validation-message">Por favor proporcionar un Nombre</div>
+        </div>
+
+        <div class="row mb-2">
+            <label class="col-2" for="calle">Calle:</label>
+            <input class="form-control col-6 modified valid" id="calle" @bind="Estado.Canasta.Cliente.Calle" />
+        </div>
+
+        <div class="row mb-2">
+            <label class="col-2" for="ciudad">Ciudad:</label>
+            <input class="form-control col-6 modified valid" id="ciudad" @bind="Estado.Canasta.Cliente.Ciudad" />
+        </div>
+        <div class="row mb-2">
+            <button class="mx-auto w-25 btn btn-success" @onclick="PlaceOrder">Verificar</button>
+        </div>
+    </fieldset>
+</EditForm>
+
+<!-- Final de la entrada de cliente -->
+@Estado.ToJson()
+
+@code {
+    private Estado Estado { get; } = new Estado();
+
+    protected override void OnInitialized()
+    {
+        Estado.Menu.Add(new Pizza(1, "Pepperoni", 8.99M, Especias.Condimentado));
+        Estado.Menu.Add(new Pizza(2, "Margarita", 7.99M, Especias.Ninguna));
+        Estado.Menu.Add(new Pizza(3, "Diabolo", 9.99M, Especias.Picante));
+    }
+
+    private string EspeciasImagenes(Especias especias) => $"Imagenes/{especias.ToString().ToLower()}.png";
+
+    private void AddCanasta(Pizza pizza) => Estado.Canasta.Add(pizza.Id);
+
+    private void RemoverCanata(int pos) => Estado.Canasta.RemoveAt(pos);
+
+    private void PlaceOrder()
+    {
+        Console.WriteLine("Placing order");
+    }
+}
